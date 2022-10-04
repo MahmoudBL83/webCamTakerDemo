@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    <div class="but" id="start-camera">فتح الكاميرا</div>
+    <video id="video" width="320" height="240" autoplay></video>
+    <img src="">
+    <div class="but" id="click-photo">إلتقط صورة</div>
+    <canvas id="canvas" width="320" height="240"></canvas>
+</body>
+<script>
+
+  let startCam = document.querySelector("#start-camera");
+    let video = document.querySelector("#video");
+    let takePhoto = document.querySelector("#click-photo");
+    let canvas = document.querySelector("#canvas");
+
+    startCam.addEventListener('click', async function() {
+        await navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+        .then((stream)=>{
+            video.srcObject = stream;
+        })
+        .catch((err)=>{
+            alert('the devices are not connected')
+        })
+    });
+
+    takePhoto.addEventListener('click', function() {
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        let image_data_url = canvas.toDataURL('image/jpeg');
+        let file = null;
+        let blob = document.querySelector("#canvas").toBlob(function(blob) {
+				file = new File([blob], 'test.jpg', { type: 'image/jpeg' });
+			}, 'image/jpeg');
+        // data url of the image
+        document.querySelector('img').src=image_data_url
+        console.log(image_data_url);
+        var URI = image_data_url;
+        convertURIToImageData(URI).then(function(imageData) {
+        console.log(imageData);
+        });
+    });
+
+    /***********************/
+    function convertURIToImageData(URI) {
+    return new Promise(function(resolve, reject) {
+        if (URI == null) return reject();
+        var canvas = document.createElement('canvas'),
+            context = canvas.getContext('2d'),
+            image = new Image();
+        image.addEventListener('load', function() {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+        }, false);
+        image.src = URI;
+    });
+}
+</script>
+</html>
