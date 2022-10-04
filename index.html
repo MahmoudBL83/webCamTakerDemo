@@ -22,7 +22,7 @@
     let canvas = document.querySelector("#canvas");
 
     startCam.addEventListener('click', async function() {
-        await navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+        await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then((stream)=>{
             video.srcObject = stream;
         })
