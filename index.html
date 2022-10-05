@@ -20,6 +20,7 @@ video{
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
     width:50vw;
     height: 50vh;
+    border-radius: 10px;
 }
 
 #previewPhoto{
@@ -30,6 +31,32 @@ video{
     display: flex;
     flex-direction: column;
     transition: 0.6s;
+    z-index:20;
+    border-radius: 5px;
+}
+
+.overlayCam{
+    position: fixed;
+    width:100vw;
+    height: 100vh;
+    background-color: rgba(255,255,255,0.7);
+    top:0;
+    right: 0;
+    z-index:10;
+}
+
+.overlayCam:before {
+	content: "";
+	position: absolute;
+	background: inherit;
+	z-index: -1;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	box-shadow: inset 0 0 2000px rgba(255, 255, 255, .2);
+	filter: blur(10px);
+	margin: -20px;
 }
 
 .but{
@@ -70,6 +97,7 @@ video{
     display: flex;
     flex-direction: column;
     gap:10px;
+    width: 15%;
 }
 
 #photosCol>div{
@@ -88,11 +116,30 @@ video{
     top:50%;
     display: flex;
     flex-direction: column;
+    gap:10px;
 }
 
 .hideCam{
     opacity: 0;
     z-index:-1000;
+}
+
+#click-photo{
+    display: flex;
+    gap:10px;
+}
+
+#personalPhoto,#nationalIDFront,#nationalIDBack{
+    aspect-ratio: 8.5/11;
+    border: 1px solid gray;
+    background-color: gray;
+    margin-top:-5px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+#nationalIDFront,#nationalIDBack{
+    aspect-ratio:11/8.5;
 }
     </style>
     <meta charset="UTF-8">
@@ -100,8 +147,10 @@ video{
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
+    <div class="overlayCam hideCam"></div>
     <div id="buttonsCol">
         <div class="but" id="start-camera1">personal photo</div>
         <div class="but" id="start-camera2">scan national id (FRONT)</div>
@@ -109,7 +158,7 @@ video{
     </div>
     <div id="previewPhoto" class="hideCam">
         <video id="video" autoplay></video>
-        <div class="but" id="click-photo">إلتقط الصورة</div>
+        <div class="but" id="click-photo">إلتقط الصورة <i class="fa fa-camera"></i></div>
     </div>
     <div id="photosCol">
         <div>
@@ -133,7 +182,7 @@ video{
     let startCam1 = document.querySelector("#start-camera1");
     let startCam2 = document.querySelector("#start-camera2");
     let startCam3 = document.querySelector("#start-camera3");
-
+    var permissionTaken = false
     let video = document.querySelector("#video");
     let takePhoto = document.querySelector("#click-photo");
     let canvas = document.querySelector("#canvas");
@@ -141,6 +190,7 @@ video{
     //SETTING EVENT HANDLER FOR EACH BUTTON TO START THE CAM
     [startCam1,startCam2,startCam3].forEach(e=>{
         e.addEventListener('click', async function() {
+            document.querySelector('.overlayCam').classList.remove('hideCam')
             takePhoto.setAttribute('photoType',e.id)
             adjustPhoto()
         });
@@ -149,6 +199,7 @@ video{
     //SETTING EVENT HANDLER FOR TAKING THE PHOTO
     takePhoto.addEventListener('click',function () {
         document.querySelector('#previewPhoto').classList.add('hideCam')
+        document.querySelector('.overlayCam').classList.add('hideCam')
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         let image_data_url = canvas.toDataURL('image/jpeg');
         let photoTypesMap = new Map([
@@ -162,15 +213,29 @@ video{
         
     });
 
+    document.body.addEventListener('click',()=>{
+        document.querySelector('#previewPhoto').classList.add('hideCam')
+        document.querySelector('.overlayCam').classList.add('hideCam')
+    },true)
+
     async function adjustPhoto(){
         document.querySelector('#previewPhoto').classList.remove('hideCam')
-        await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
-        .then((stream)=>{
-            video.srcObject = stream;
-        })
-        .catch((err)=>{
-            alert('the devices are not connected')
-        })
+        if(permissionTaken){
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
+            .then((stream)=>{
+                video.srcObject = stream;
+                permissionTaken = true
+            })
+        }else{
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
+            .then((stream)=>{
+                video.srcObject = stream;
+                permissionTaken = true
+            })
+            .catch((err)=>{
+                alert('the devices are not connected')
+            })
+        } 
     }
 
     function dataURLtoFile(dataurl, filename) {
