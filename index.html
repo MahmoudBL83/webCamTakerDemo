@@ -72,6 +72,15 @@ video{
     gap:10px;
 }
 
+#photosCol>div{
+    display: flex;
+    flex-direction: column;
+}
+
+#photosCol>div>div{
+   width:100%;
+}
+
 #buttonsCol{
     position: absolute;
     height: 100%;
@@ -90,6 +99,7 @@ video{
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="./index.css">
 </head>
 <body>
     <div id="buttonsCol">
@@ -102,21 +112,33 @@ video{
         <div class="but" id="click-photo">إلتقط الصورة</div>
     </div>
     <div id="photosCol">
-        <img id="personalPhoto" src="">
-        <img id="nationalIDFront" src="">
-        <img id="nationalIDBack" src="">
+        <div>
+            <div class="but">صورة شخصية</div>
+            <img id="personalPhoto" src="">
+        </div>
+        <div>
+            <div class="but">صورة بطاقة أمامية</div>
+            <img id="nationalIDFront" src="">
+        </div>
+        <div>
+            <div class="but">صورة بطاقة خلفية</div>
+            <img id="nationalIDBack" src="">
+        </div>
     </div>
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
 </body>
 <script>
-
+    
+    //Buttons of start cam
     let startCam1 = document.querySelector("#start-camera1");
     let startCam2 = document.querySelector("#start-camera2");
     let startCam3 = document.querySelector("#start-camera3");
+
     let video = document.querySelector("#video");
     let takePhoto = document.querySelector("#click-photo");
     let canvas = document.querySelector("#canvas");
 
+    //SETTING EVENT HANDLER FOR EACH BUTTON TO START THE CAM
     [startCam1,startCam2,startCam3].forEach(e=>{
         e.addEventListener('click', async function() {
             takePhoto.setAttribute('photoType',e.id)
@@ -124,27 +146,20 @@ video{
         });
     })
     
-    
-    
+    //SETTING EVENT HANDLER FOR TAKING THE PHOTO
     takePhoto.addEventListener('click',function () {
         document.querySelector('#previewPhoto').classList.add('hideCam')
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         let image_data_url = canvas.toDataURL('image/jpeg');
-        /*let file = null;
-        let blob = document.querySelector("#canvas").toBlob(function(blob) {
-				file = new File([blob], 'test.jpg', { type: 'image/jpeg' });
-			}, 'image/jpeg');*/
-        // data url of the image
         let photoTypesMap = new Map([
             ['start-camera1','#personalPhoto'],
             ['start-camera2','#nationalIDFront'],
             ['start-camera3','#nationalIDBack'],
         ])
+        //SET THE IMAGE IN THE PROPER SIDE
         document.querySelector(photoTypesMap.get(takePhoto.getAttribute('photoType'))).src = image_data_url;
-
-        /*convertURIToImageData(image_data_url).then(function(imageData) {
-            console.log(imageData);
-        });*/
+        console.log(dataURLtoFile(image_data_url,'imgNew.jpg'))
+        
     });
 
     async function adjustPhoto(){
@@ -157,22 +172,20 @@ video{
             alert('the devices are not connected')
         })
     }
-    
-    /***********************/
-    /*function convertURIToImageData(URI) {
-    return new Promise(function(resolve, reject) {
-        if (URI == null) return reject();
-        var canvas = document.createElement('canvas'),
-            context = canvas.getContext('2d'),
-            image = new Image();
-        image.addEventListener('load', function() {
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(context.getImageData(0, 0, canvas.width, canvas.height));
-        }, false);
-        image.src = URI;
-    });
-}*/
+
+    function dataURLtoFile(dataurl, filename) {
+        
+        var arr = dataurl.split(','),
+            mime = arr[0].match(/:(.*?);/)[1],
+            bstr = atob(arr[1]), 
+            n = bstr.length, 
+            u8arr = new Uint8Array(n);
+            
+        while(n--){
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        
+        return new File([u8arr], filename, {type:mime});
+        }
 </script>
 </html>
