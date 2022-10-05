@@ -1,53 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        *{
+    margin:0;
+    padding: 0;
+}
+
+body{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    gap:15px;
+}
+
+video{
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    width:50vw;
+    height: 50vh;
+}
+
+#previewPhoto{
+    position: absolute;
+    top:50%;
+    right: 50%;
+    transform: translate(50%,-50%);
+    display: flex;
+    flex-direction: column;
+    transition: 0.6s;
+}
+
+.but{
+    align-items: center;
+    appearance: none;
+    background: radial-gradient(100% 100% at 100% 0, #09917c 0, #09917c 100%);
+    border: 0;
+    border-radius: 6px;
+    box-shadow: rgb(45 35 66 / 40%) 0 2px 4px, rgb(45 35 66 / 30%) 0 7px 13px -3px, rgb(58 65 111 / 50%) 0 -3px 0 inset;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    height: 48px;
+    justify-content: center;
+    line-height: 1;
+    list-style: none;
+    overflow: hidden;
+    padding-left: 16px;
+    padding-right: 16px;
+    position: relative;
+    text-align: left;
+    text-decoration: none;
+    transition: box-shadow .15s,transform .15s;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    will-change: box-shadow,transform;
+    font-size: 18px;
+}
+
+#photosCol{
+    position: absolute;
+    height: 100%;
+    right:40px;
+    top:40px;
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+
+#buttonsCol{
+    position: absolute;
+    height: 100%;
+    left:50px;
+    top:50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.hideCam{
+    opacity: 0;
+    z-index:-1000;
+}
+    </style>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="./index.css">
 </head>
 <body>
-    <div class="but" id="start-camera">فتح الكاميرا</div>
-    <video id="video" width="320" height="240" autoplay></video>
-	<canvas id="canvas" width="320" height="240"></canvas>
-    <div class="but" id="click-photo">إلتقط صورة</div>
+    <div id="buttonsCol">
+        <div class="but" id="start-camera1">personal photo</div>
+        <div class="but" id="start-camera2">scan national id (FRONT)</div>
+        <div class="but" id="start-camera3">scan national id (BACK)</div>
+    </div>
+    <div id="previewPhoto" class="hideCam">
+        <video id="video" autoplay></video>
+        <div class="but" id="click-photo">إلتقط الصورة</div>
+    </div>
+    <div id="photosCol">
+        <img id="personalPhoto" src="">
+        <img id="nationalIDFront" src="">
+        <img id="nationalIDBack" src="">
+    </div>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
 </body>
 <script>
 
-  let startCam = document.querySelector("#start-camera");
+    let startCam1 = document.querySelector("#start-camera1");
+    let startCam2 = document.querySelector("#start-camera2");
+    let startCam3 = document.querySelector("#start-camera3");
     let video = document.querySelector("#video");
     let takePhoto = document.querySelector("#click-photo");
     let canvas = document.querySelector("#canvas");
 
-    startCam.addEventListener('click', async function() {
-        await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+    [startCam1,startCam2,startCam3].forEach(e=>{
+        e.addEventListener('click', async function() {
+            takePhoto.setAttribute('photoType',e.id)
+            adjustPhoto()
+        });
+    })
+    
+    
+    
+    takePhoto.addEventListener('click',function () {
+        document.querySelector('#previewPhoto').classList.add('hideCam')
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        let image_data_url = canvas.toDataURL('image/jpeg');
+        /*let file = null;
+        let blob = document.querySelector("#canvas").toBlob(function(blob) {
+				file = new File([blob], 'test.jpg', { type: 'image/jpeg' });
+			}, 'image/jpeg');*/
+        // data url of the image
+        let photoTypesMap = new Map([
+            ['start-camera1','#personalPhoto'],
+            ['start-camera2','#nationalIDFront'],
+            ['start-camera3','#nationalIDBack'],
+        ])
+        document.querySelector(photoTypesMap.get(takePhoto.getAttribute('photoType'))).src = image_data_url;
+
+        /*convertURIToImageData(image_data_url).then(function(imageData) {
+            console.log(imageData);
+        });*/
+    });
+
+    async function adjustPhoto(){
+        document.querySelector('#previewPhoto').classList.remove('hideCam')
+        await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
         .then((stream)=>{
             video.srcObject = stream;
         })
         .catch((err)=>{
             alert('the devices are not connected')
         })
-    });
-
-    takePhoto.addEventListener('click', function() {
-        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        let image_data_url = canvas.toDataURL('image/jpeg');
-        let file = null;
-        let blob = document.querySelector("#canvas").toBlob(function(blob) {
-				file = new File([blob], 'test.jpg', { type: 'image/jpeg' });
-			}, 'image/jpeg');
-        // data url of the image
-        document.querySelector('img').src=image_data_url
-        console.log(image_data_url);
-        var URI = image_data_url;
-        convertURIToImageData(URI).then(function(imageData) {
-        console.log(imageData);
-        });
-    });
-
+    }
+    
     /***********************/
-    function convertURIToImageData(URI) {
+    /*function convertURIToImageData(URI) {
     return new Promise(function(resolve, reject) {
         if (URI == null) return reject();
         var canvas = document.createElement('canvas'),
@@ -61,6 +173,6 @@
         }, false);
         image.src = URI;
     });
-}
+}*/
 </script>
 </html>
