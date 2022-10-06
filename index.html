@@ -18,8 +18,8 @@ body{
 
 video{
     box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-    width:50vw;
-    height: 50vh;
+    height:60vh;
+    aspect-ratio: 3/2;
     border-radius: 10px;
 }
 
@@ -31,7 +31,6 @@ video{
     display: flex;
     flex-direction: column;
     transition: 0.6s;
-    z-index:20;
     border-radius: 5px;
 }
 
@@ -124,6 +123,10 @@ video{
     z-index:-1000;
 }
 
+.showCam{
+    z-index:20;
+}
+
 #click-photo{
     display: flex;
     gap:10px;
@@ -139,7 +142,29 @@ video{
 }
 
 #nationalIDFront,#nationalIDBack{
-    aspect-ratio:11/8.5;
+    aspect-ratio:3/2;
+}
+
+@media(max-width:767px){
+    video{
+        height: unset;
+        width:80vw;
+    }
+}
+
+@media(max-width:1100px){
+    #photosCol{
+        width:25%;
+        right:0;
+
+    }
+}
+
+@media(max-width:600px){
+    #photosCol{
+        flex-direction: row;
+        width: 90%;
+    }
 }
     </style>
     <meta charset="UTF-8">
@@ -190,6 +215,10 @@ video{
     //SETTING EVENT HANDLER FOR EACH BUTTON TO START THE CAM
     [startCam1,startCam2,startCam3].forEach(e=>{
         e.addEventListener('click', async function() {
+            if(this==startCam1)
+            video.style = 'aspect-ratio:8.5/11;'
+            else
+            video.style=''
             document.querySelector('.overlayCam').classList.remove('hideCam')
             takePhoto.setAttribute('photoType',e.id)
             adjustPhoto()
@@ -199,6 +228,7 @@ video{
     //SETTING EVENT HANDLER FOR TAKING THE PHOTO
     takePhoto.addEventListener('click',function () {
         document.querySelector('#previewPhoto').classList.add('hideCam')
+        document.querySelector('#previewPhoto').classList.remove('showCam')
         document.querySelector('.overlayCam').classList.add('hideCam')
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
         let image_data_url = canvas.toDataURL('image/jpeg');
@@ -210,16 +240,17 @@ video{
         //SET THE IMAGE IN THE PROPER SIDE
         document.querySelector(photoTypesMap.get(takePhoto.getAttribute('photoType'))).src = image_data_url;
         console.log(dataURLtoFile(image_data_url,'imgNew.jpg'))
-        
     });
 
     document.body.addEventListener('click',()=>{
         document.querySelector('#previewPhoto').classList.add('hideCam')
+        document.querySelector('#previewPhoto').classList.remove('showCam')
         document.querySelector('.overlayCam').classList.add('hideCam')
     },true)
 
     async function adjustPhoto(){
         document.querySelector('#previewPhoto').classList.remove('hideCam')
+        document.querySelector('#previewPhoto').classList.add('showCam')
         if(permissionTaken){
             await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
             .then((stream)=>{
