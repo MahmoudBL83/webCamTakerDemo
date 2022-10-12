@@ -192,7 +192,10 @@ video{
         <video id="video" autoplay></video>
         <div class="but" id="click-photo">إلتقط الصورة <i class="fa fa-camera"></i></div>
         <div>
-            <select></select>
+            <select>
+                <option>dddd</option>
+                <option>ddsdsdddd</option>
+            </select>
             <span id="refreshCams">تحديث</span>
         </div>
     </div>
@@ -212,8 +215,7 @@ video{
     </div>
     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
 </body>
-<script>
-    
+<script> 
     //Buttons of start cam
     let startCam1 = document.querySelector("#start-camera1");
     let startCam2 = document.querySelector("#start-camera2");
@@ -226,10 +228,21 @@ video{
     //SETTING EVENT HANDLER FOR EACH BUTTON TO START THE CAM
     [startCam1,startCam2,startCam3].forEach(e=>{
         e.addEventListener('click', async function() {
-            if(this==startCam1)
-            video.style = 'aspect-ratio:8.5/11;'
-            else
-            video.style=''
+            let select = document.querySelector('#previewPhoto').querySelector('select')
+            if(this==startCam1){
+                video.style = 'aspect-ratio:8.5/11;'
+                if(localStorage.getItem('defaulCamsForPersonalPhoto') != null)
+                    select.selectedIndex = localStorage.getItem('defaulCamsForPersonalPhoto')
+                else
+                    select.selectedIndex = 0;                 
+            }
+            else{
+                video.style=''
+                if(localStorage.getItem('defaulCamsForNationalCard') != null)
+                    select.selectedIndex = localStorage.getItem('defaulCamsForNationalCard')
+                else
+                    select.selectedIndex = 0; 
+            }
             document.querySelector('.overlayCam').classList.remove('hideCam')
             takePhoto.setAttribute('photoType',e.id)
             adjustPhoto()
@@ -250,7 +263,12 @@ video{
         ])
         //SET THE IMAGE IN THE PROPER SIDE
         document.querySelector(photoTypesMap.get(takePhoto.getAttribute('photoType'))).src = image_data_url;
-        console.log(dataURLtoFile(image_data_url,'imgNew.jpg'))
+        if(localStorage.getItem('defaulCamsForNationalCard') == null && takePhoto.getAttribute('photoType')!='start-camera1'){
+            localStorage.setItem('defaulCamsForNationalCard',select.selectedIndex)
+        }
+        if(localStorage.getItem('defaulCamsForPersonalPhoto') == null && takePhoto.getAttribute('photoType')=='start-camera1'){
+            localStorage.setItem('defaulCamsForPersonalPhoto',select.selectedIndex)
+        }
     },true);
 /*
     document.body.addEventListener('click',(e)=>{
@@ -264,15 +282,15 @@ video{
         document.querySelector('#previewPhoto').classList.remove('hideCam')
         document.querySelector('#previewPhoto').classList.add('showCam')
         if(permissionTaken){
-            await navigator.mediaDevices.getUserMedia({ video: {deviceId:{exact:select.value}}, audio: false })
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: false })
             .then((stream)=>{
                 video.srcObject = stream;
-                permissionTaken = true
+                permissionTaken = true;
                 return navigator.mediaDevices.enumerateDevices();
             })
             .then(gotDevices)
         }else{
-            await navigator.mediaDevices.getUserMedia({ video: {deviceId:{exact:select.value}}, audio: false })
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: false })
             .then((stream)=>{
                 video.srcObject = stream;
                 permissionTaken = true;
@@ -295,6 +313,8 @@ video{
 
     refreshCams.addEventListener('click',changeCams)
 
+    document.querySelector('#previewPhoto').addEventListener('input',changeCams)
+
     function dataURLtoFile(dataurl, filename) {
         
         var arr = dataurl.split(','),
@@ -310,10 +330,9 @@ video{
         return new File([u8arr], filename, {type:mime});
         }
 
-        navigator.mediaDevices.enumerateDevices().then(gotDevices);
-
-        const select = document.querySelector('select');
+        
         function gotDevices(mediaDevices) {
+            const select = document.querySelector('select');
             select.innerHTML = '';
             select.appendChild(document.createElement('option'));
             let count = 1;
@@ -325,10 +344,9 @@ video{
                 const textNode = document.createTextNode(label);
                 option.appendChild(textNode);
                 select.appendChild(option);
+                select.value = option
                 }
             });
         }
-
-        navigator.mediaDevices.enumerateDevices().then(gotDevices);
 </script>
 </html>
