@@ -227,7 +227,7 @@ video{
     let select = document.querySelector('select');
 
     //SETTING EVENT HANDLER FOR EACH BUTTON TO START THE CAM
-    [...startCam1,startCam2,startCam3].forEach(e=>{
+    [startCam1,startCam2,startCam3].forEach(e=>{
         e.addEventListener('click', async function() {
             let select = document.querySelector('#previewPhoto').querySelector('select')
             if(this==startCam1){
