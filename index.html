@@ -287,7 +287,7 @@ video{
 
     function changeCams(){
         let currentStream = document.querySelector('video').srcObject
-        if (typeof currentStream !== 'undefined') {
+        if (typeof currentStream !== 'undefined' && currentStream!=null) {
             currentStream.getTracks()[0].stop();
         }
         adjustPhoto()
