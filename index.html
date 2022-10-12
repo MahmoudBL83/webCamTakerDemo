@@ -282,6 +282,7 @@ video{
     async function adjustPhoto(){
         document.querySelector('#previewPhoto').classList.remove('hideCam')
         document.querySelector('#previewPhoto').classList.add('showCam')
+        let select = document.querySelector('select')
         if(permissionTaken){
             await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: false })
             .then((stream)=>{
