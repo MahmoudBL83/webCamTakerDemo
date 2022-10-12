@@ -171,7 +171,6 @@ video{
     #photosCol > div{
         width: 30%;
     }
-
 }
     </style>
     <meta charset="UTF-8">
@@ -188,9 +187,14 @@ video{
         <div class="but" id="start-camera2">scan national id (FRONT)</div>
         <div class="but" id="start-camera3">scan national id (BACK)</div>
     </div>
+    
     <div id="previewPhoto" class="hideCam">
         <video id="video" autoplay></video>
         <div class="but" id="click-photo">إلتقط الصورة <i class="fa fa-camera"></i></div>
+        <div>
+            <select></select>
+            <span id="refreshCams">تحديث</span>
+        </div>
     </div>
     <div id="photosCol">
         <div>
@@ -233,7 +237,7 @@ video{
     })
     
     //SETTING EVENT HANDLER FOR TAKING THE PHOTO
-    takePhoto.addEventListener('click',function () {
+    takePhoto.addEventListener('click',function (e) {
         document.querySelector('#previewPhoto').classList.add('hideCam')
         document.querySelector('#previewPhoto').classList.remove('showCam')
         document.querySelector('.overlayCam').classList.add('hideCam')
@@ -247,34 +251,49 @@ video{
         //SET THE IMAGE IN THE PROPER SIDE
         document.querySelector(photoTypesMap.get(takePhoto.getAttribute('photoType'))).src = image_data_url;
         console.log(dataURLtoFile(image_data_url,'imgNew.jpg'))
-    });
-
-    document.body.addEventListener('click',()=>{
+    },true);
+/*
+    document.body.addEventListener('click',(e)=>{
+        e.stopPropagation()
         document.querySelector('#previewPhoto').classList.add('hideCam')
         document.querySelector('#previewPhoto').classList.remove('showCam')
         document.querySelector('.overlayCam').classList.add('hideCam')
-    },true)
-
+    })
+*/
     async function adjustPhoto(){
         document.querySelector('#previewPhoto').classList.remove('hideCam')
         document.querySelector('#previewPhoto').classList.add('showCam')
         if(permissionTaken){
-            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: true })
             .then((stream)=>{
                 video.srcObject = stream;
                 permissionTaken = true
+                return navigator.mediaDevices.enumerateDevices();
             })
+            .then(gotDevices)
         }else{
-            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user'}, audio: false })
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: true })
             .then((stream)=>{
                 video.srcObject = stream;
-                permissionTaken = true
+                permissionTaken = true;
+                return navigator.mediaDevices.enumerateDevices();
             })
+            .then(gotDevices)
             .catch((err)=>{
                 alert('the devices are not connected')
             })
         } 
     }
+
+    function changeCams(){
+        let currentStream = document.querySelector('video').srcObject
+        if (typeof currentStream !== 'undefined') {
+            currentStream.getTracks()[0].stop();
+        }
+        adjustPhoto()
+    }
+
+    refreshCams.addEventListener('click',changeCams)
 
     function dataURLtoFile(dataurl, filename) {
         
@@ -290,5 +309,26 @@ video{
         
         return new File([u8arr], filename, {type:mime});
         }
+
+        navigator.mediaDevices.enumerateDevices().then(gotDevices);
+
+        const select = document.querySelector('select');
+        function gotDevices(mediaDevices) {
+            select.innerHTML = '';
+            select.appendChild(document.createElement('option'));
+            let count = 1;
+            mediaDevices.forEach(mediaDevice => {
+                if (mediaDevice.kind === 'audioinput') {
+                const option = document.createElement('option');
+                option.value = mediaDevice.deviceId;
+                const label = mediaDevice.label || `Camera ${count++}`;
+                const textNode = document.createTextNode(label);
+                option.appendChild(textNode);
+                select.appendChild(option);
+                }
+            });
+        }
+
+        navigator.mediaDevices.enumerateDevices().then(gotDevices);
 </script>
 </html>
