@@ -264,7 +264,7 @@ video{
         document.querySelector('#previewPhoto').classList.remove('hideCam')
         document.querySelector('#previewPhoto').classList.add('showCam')
         if(permissionTaken){
-            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: true })
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: false })
             .then((stream)=>{
                 video.srcObject = stream;
                 permissionTaken = true
@@ -272,7 +272,7 @@ video{
             })
             .then(gotDevices)
         }else{
-            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: true })
+            await navigator.mediaDevices.getUserMedia({ video: {facingMode:'user',deviceId:{exact:select.value}}, audio: false })
             .then((stream)=>{
                 video.srcObject = stream;
                 permissionTaken = true;
